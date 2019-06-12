@@ -1,0 +1,91 @@
+import random as r
+
+def judge(a):                  #判断是否进行游戏
+    yes=['y','Y']
+    if a in yes:return 1
+    else: return 0
+    
+def stabegin():                #力求输入整数
+    while True:
+        try:piles=int(input('How many piles do you want to use:'));break
+        except:print('Please input a intNUMBER to start the game!')
+    return piles
+
+def pool(a):                   #整副扑克
+    l_1=['2','3','4','5','6','7','8','9','10'];l_2=['J','Q','K'];l_3=['A']
+    return (l_3+l_1+l_2)*a
+
+def caculator(a):              #计算得分 以及 黑杰克判断
+    l_2=['10','J','Q','K'];ending=0;flag=0;m=n=500
+    for i in a:
+        if i=='A':
+            if ending+11>21:ending+=1
+            else:ending+=11
+            m=0
+        elif i in l_2:ending+=10;n=0
+        else:ending+=int(i)
+    if ending>21:flag=-1       #自爆返回 -1
+    elif ending==21 and m==0 and n==0:flag=-5 #黑杰克返回 -5
+    else:flag=0
+    if flag==-1 or flag==-5:return flag
+    elif flag==0:return ending    #未自爆非黑杰克返回值 
+
+def match(a,b):                 #比较黑杰克 or 谁大谁小 or 自爆
+    you=caculator(a);com=caculator(b);flag=0
+    if com==-5 and you==-5:print('BOTH have BlackJack!');flag=-1                     #平局返回 -1
+    elif com==-5 and you!=-5:print('Compu BlackJack!');flag=2                        #电脑赢返回 2
+    elif you==-5 and com!=-5:print('You BlackJack!');flag=3                          #人类赢返回 3
+    if you==-1 and com!=-1:flag=2
+    elif com==-1 and you!=-1:flag=3
+    if you > com:flag=3
+    elif you == com:flag=-1
+    else:flag=2
+    return flag
+
+def markboard(a):              #记分板 平 -1 电脑 2 玩家 3
+    flag=0
+    if a==-1:print('BOTH are WINNER!');flag=-1
+    elif a==2:print('WINNER is the COMPU!');flag=2
+    elif a==3:print('WINNER is the CLEVER--YOU!');flag=3
+    return flag
+
+def get_not(a):                     #给电脑开外挂
+    if caculator(a)==-1:return -9
+    else:return a
+
+print('The computer is the BOSS!')
+piles=stabegin();k,d,c=0,0,0
+while judge(input('INPUT Y/y to start game:')):
+    a=4;k+=1;print('{1}The NO.{0} round{1}'.format(k,' '*20))
+    l=4*pool(piles);r.shuffle(l);yours=l[:2];compu=l[2:4]
+    print("YOURS:{}\nCOMPU:['{}', '{}']".format(yours,compu[0],'?'))
+    cay=caculator(yours);cac=caculator(compu)
+    if cay==-5 and cac==-5:
+        print('The WINNER is BOTH!!\nBoth have BlackJack!!')
+        print('{0}SCORING{0}\nYOU:COMPU is {1}:{2}'.format('*'*24,c,d))
+        continue
+    elif cay==-5 and cac!=-5:
+        print('--->BlackJack!   The WINNER is YOU!');c+=1;
+        print('{0}SCORING{0}\nYOU:COMPU is {1}:{2}'.format('*'*24,c,d));continue
+    elif cac==-5 and cay!=-5:
+        print('--->BlackJack!   The WINNER is the COMPU!');d+=1;
+        print('{0}SCORING{0}\nYOU:COMPU is {1}:{2}'.format('*'*24,c,d));continue
+    while judge(input('Input Y/y to get the next card:')):
+        yours.append(l[a])
+        print('NOW YOURS:{}'.format(yours));a+=1
+        if caculator(yours)==-1:
+            print('-------->>>You BOMBING!!');break
+    compuu=compu;compuuu=compuu                        #外挂开始
+    while True:
+        compuu.append(l[a]);compuu=get_not(compuu)
+        if compuu==-9:break
+        else:a+=1;compuuu=compuu
+    compu=compuuu[0:len(compuuu)-1]                    #外挂结束
+    print('YOURS:{}'.format(yours));print('COMPU:{}'.format(compu))
+    flag=markboard(match(yours,compu))
+    if flag==2:d+=1
+    elif flag==3:c+=1
+    print('{0}SCORING{0}\nYOU:COMPU is {1}:{2}'.format('*'*24,c,d))
+    
+    
+    #2019/6/12 22:39
