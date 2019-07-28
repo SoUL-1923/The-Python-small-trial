@@ -1,0 +1,211 @@
+#reset+gui2048
+import random as r
+import tkinter as tk
+import sys
+
+def saveRecord(qwork):
+    try:
+        fi=open("GameRecord.txt","w")
+        k=0
+        for i in range(4):
+            for j in range(4):
+                k+=1
+                if k%4==0:q='\n'
+                else:q=' '
+                fi.write(f'{qwork[i][j]}{q}')
+        fi.close()
+    except:
+        print("saveRecord Error!\n")
+        sys.exit(0)
+    return 0
+
+def judge(work):
+    for i in work:
+        for j in range(4):
+            if i[j]==0:
+                return 1
+    else:
+        for i in work:
+            for j in range(3):
+                if i[j]==i[j+1]:return 1
+        for i in range(3):
+            for j in range(4):
+                if work[i][j]==work[i+1][j]:return 1
+        return -1
+    
+def change(i):                                              #处理列表
+    pool=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,2,2,2,2,2,2,2,2,2,2]
+    global score
+    qscore=10
+    for k in range(3):
+        for j in range(k+1,4):
+            if(i[j]>0):
+                if(i[k]==i[j]):
+                    i[k]=2*i[k]
+                    i[j]=0
+                    score+=qscore
+                elif(i[k]==0):
+                    i[k]=i[j]
+                    i[j]=0
+                else:
+                    i[k+1]=i[j]
+                    if(j!=k+1):
+                        i[j]=0
+                    k+=1
+    a=0
+    for q in i:
+        if q==0:
+            i.remove(q)
+            a+=1
+    for j in range(a):
+        i.append(r.choice(pool))
+    return i;
+
+def activity(work,act):     #[] 重造列表
+    if(work==[]):
+        for i in range(4):
+            work.append(r.sample([0,0,0,0,2,2],4))
+    else:                                  #造列表并处理返回
+        if(act==1):
+            for i in work:i=change(i)
+        elif(act==3):
+            for i in work:i[::-1]=change(i[::-1])
+        elif(act==5 or act==2):
+            for j in range(4):
+                NowList=[]
+                for k in range(4):
+                    NowList.append(work[k][j])
+                if(act==2):NowList[::-1]=change(NowList[::-1])
+                if(act==5):NowList=change(NowList)
+                for k in range(4):
+                    work[k][j]=NowList[k]
+        elif act==4:
+            work=work
+    return work;    
+
+def freshUp():
+    fresh(activity(work,5),1)
+    scorefresh()
+     
+def freshDo():
+    fresh(activity(work,2),1)
+    scorefresh()
+    
+def freshRi():
+    fresh(activity(work,3),1)
+    scorefresh()
+    
+def freshLe():
+    fresh(activity(work,1),1)
+    scorefresh()
+    
+def reseting():
+    global work,score
+    work=[];score=0
+    fresh(activity(work,4),1)
+
+def fresh(qwork,m):
+    saveRecord(qwork)
+    for j in range(4):
+        for i in range(4):
+            label1 = tk.Label(win, text=qwork[j][i], bg="lightblue",width=3,height=3)
+            label1.place(x=(i+1)*40,y=(j+1)*40)
+    if judge(qwork)<0 or m==0:
+        global res
+        res=tk.Tk()
+        res.title("Over!")
+        res.geometry("215x100+125+175")
+        bu=tk.Button(res,text="A New Game?",command=resAdes,bg="lightgrey",activebackground="pink")
+        bu.pack(pady=33)
+        res.resizable(0,0)
+        res.mainloop()
+
+def resAdes():
+    reseting()
+    res.destroy()
+
+def Quit():
+    qit=tk.Tk()
+    qit.title('NO!')
+    qit.geometry('265x75+150+150')
+    qtext=["Click Me!","Founded!"]
+    tk.Button(qit,text=qtext[0],font=12,width=20,bg="tomato",command=qit.destroy,activebackground="white").place(x=20,y=20)
+    qit.resizable(0,0)
+    qit.mainloop()
+
+def setAct():
+    up=tk.Button(win,text="UP",bg="lightgrey",activebackground="tomato",command=freshUp,width=8,font=15)
+    do=tk.Button(win,text="DOWN",bg="lightgrey",activebackground="tomato",command=freshDo,width=8,font=15)
+    ri=tk.Button(win,text="RIGHT",bg="lightgrey",activebackground="tomato",command=freshRi,width=8,font=15)
+    le=tk.Button(win,text="LEFT",bg="lightgrey",activebackground="tomato",command=freshLe,width=8,font=15)
+    up.place(x=350,y=55)
+    do.place(x=350,y=100)
+    ri.place(x=450,y=100)
+    le.place(x=250,y=100)
+    tk.Button(win,text="No Problem!",command=Quit,width=26).place(x=350,y=150)
+
+def xFunc1(event):
+    if event.keycode==37:freshLe()
+    elif event.keycode==38:freshUp()
+    elif event.keycode==39:freshRi()
+    elif event.keycode==40:freshDo()
+    elif event.keycode==32:fresh(activity(work,4),0)
+
+def scorefresh():
+    global score
+    te=tk.Label(win,text=f"NOW Your Score : {score}")
+    te.place(x=347,y=200)
+
+def counter():
+    global j
+    j+=1
+    con=tk.Label(win,text="Time --> {:4}s ".format(j))
+    con.place(x=249,y=155)
+    win.after(1000,counter)
+
+def getRecord():
+    a=['','','','']
+    kwork=[[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]
+    try:
+        fi=open("GameRecord.txt","r")
+    except:
+        fi=open("GameRecord.txt",'w')
+        fi.write('')
+        fi.close()
+        return []
+    else:
+        for i in range(4):
+            a[i]=fi.readline()
+        work=kwork
+        for i in range(4):
+            work[i]=a[i].split()
+        for i in range(4):
+            for j in range(4):
+                work[i][j]=int(work[i][j])
+    return work
+
+try:
+    score=0
+    win=tk.Tk()
+    win.title("A Funny Game-2048!")
+    win.geometry('580x250+100+100')
+    setAct()
+    a=tk.Button(win,text="Reset!",bg="pink",activebackground="hotpink",command=reseting).place(x=2,y=5)
+    tk.Button(win,text="Quiit!",bg="pink",activebackground="hotpink",command=win.destroy).place(x=55,y=5)
+    global work,j
+    if getRecord() !=[]:work=getRecord()
+    else:work=[]
+    j=0
+    scorefresh();counter()
+    xLabel = tk.Label(win, text="Also could use Keyboard!")
+    xLabel.place(x=318,y=25)
+    xLabel.focus_set()
+    xLabel.bind("<Key>", xFunc1)
+    win.resizable(0,0) #禁止调整框体大小
+    win.mainloop()
+except:
+    print("Error!")
+    
+'''之后可调用pyinstaller进行打包
+pyinstaller -F file.py --noconsole
+打包为无控制台程序'''
