@@ -209,3 +209,5 @@ except:
 '''之后可调用pyinstaller进行打包
 pyinstaller -F file.py --noconsole
 打包为无控制台程序'''
+
+#游戏绑定键盘操作
